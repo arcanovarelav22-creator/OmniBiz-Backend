@@ -2,7 +2,6 @@ from django.db import models
 
 class Product(models.Model):
     name = models.CharField(max_length=255)
-    # 🎯 Asegúrate de que tenga AMBOS parámetros exactamente así:
     price_per_unit = models.DecimalField(max_digits=10, decimal_places=2)
     stock_quantity = models.IntegerField()
     is_critical = models.BooleanField(default=False)
