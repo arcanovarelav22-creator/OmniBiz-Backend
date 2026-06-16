@@ -1,11 +1,16 @@
 from django.contrib import admin
-from django.urls import path
-from inventory.views import ProductListCreateAPIView
+from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
-    # 🎯 CORREGIDO: Ruta limpia y estándar para el Panel de Administración
-    path('admin/', admin.site.urls),
+    # 🎯 CORREGIDO: Ruta limpia y estándar para el panel de administración
+    path('admin/', admin.site.urls), 
     
-    # Endpoint exacto acoplado al Data Source de tu App en Flutter
-    path('api/v1/inventory/products/', ProductListCreateAPIView.as_view(), name='product-list-create'),
+    # Ruta para la API de tu inventario
+    path('api/v1/inventory/', include('inventory.urls')),
 ]
+
+# Servir archivos multimedia (imágenes de productos) en desarrollo
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
