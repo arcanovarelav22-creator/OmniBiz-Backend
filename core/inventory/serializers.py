@@ -7,3 +7,22 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ['id', 'sku', 'name', 'image_url', 'price_per_unit', 'stock_quantity', 'is_critical']
+
+
+
+from .models import Client # Asegúrate de que apunte al nuevo modelo
+
+class ClientSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Client
+        fields = [
+            'id', 
+            'name', 
+            'owner_name', 
+            'phone', 
+            'address', 
+            'credit_limit', 
+            'current_balance', 
+            'status', 
+            'created_at'
+        ]        
