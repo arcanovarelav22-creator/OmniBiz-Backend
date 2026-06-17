@@ -1,6 +1,9 @@
 from rest_framework import serializers
-from .models import Product
+from .models import Product, Client  # Importación unificada de ambos modelos
 
+# ==========================================
+# 📦 SERIALIZADOR DE PRODUCTOS
+# ==========================================
 class ProductSerializer(serializers.ModelSerializer):
     image_url = serializers.ImageField(required=False, allow_null=True)
 
@@ -9,9 +12,9 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = ['id', 'sku', 'name', 'image_url', 'price_per_unit', 'stock_quantity', 'is_critical']
 
 
-
-from .models import Client # Asegúrate de que apunte al nuevo modelo
-
+# ==========================================
+# 🤝 SERIALIZADOR DE CLIENTES
+# ==========================================
 class ClientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
@@ -25,4 +28,4 @@ class ClientSerializer(serializers.ModelSerializer):
             'current_balance', 
             'status', 
             'created_at'
-        ]        
+        ]
