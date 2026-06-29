@@ -18,6 +18,7 @@ class SaleItemSerializer(serializers.ModelSerializer):
 
 class SaleCreateSerializer(serializers.ModelSerializer):
     items = SaleItemSerializer(many=True)
+
     class Meta:
         model = Sale
         fields = ['id', 'client', 'payment_type', 'total_amount', 'items']
