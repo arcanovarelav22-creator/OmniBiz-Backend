@@ -1,13 +1,43 @@
-from rest_framework import status
+from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db import transaction
 from .models import Product, Client, Sale, SaleItem
+from .serializers import ProductSerializer, ClientSerializer
 
+# ==========================================
+# 📦 MÓDULO DE PRODUCTOS (INVENTARIO)
+# ==========================================
+class ProductListCreateAPIView(generics.ListCreateAPIView):
+    queryset = Product.objects.all().order_by('-id')
+    serializer_class = ProductSerializer
+
+class ProductRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    lookup_field = 'pk'
+
+
+# ==========================================
+# 🤝 MÓDULO DE CLIENTES
+# ==========================================
+class ClientListCreateAPIView(generics.ListCreateAPIView):
+    queryset = Client.objects.all().order_by('-id')
+    serializer_class = ClientSerializer
+
+class ClientRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Client.objects.all()
+    serializer_class = ClientSerializer
+    lookup_field = 'pk'
+
+
+# ==========================================
+# 💸 MÓDULO DE VENTAS (MANUAL Y ATÓMICO)
+# ==========================================
 class SaleCreateAPIView(APIView):
     def post(self, request):
         data = request.data
-        print("Datos recibidos en Django:", data) 
+        print("Datos de venta recibidos en Django:", data)
         
         try:
             with transaction.atomic():
@@ -15,29 +45,42 @@ class SaleCreateAPIView(APIView):
                 total_amount = data.get('total_amount')
                 
                 if not client_id or not total_amount:
-                    return Response({"error": "Faltan campos obligatorios: client o total_amount"}, status=400)
+                    return Response({"error": "Faltan campos obligatorios: client o total_amount"}, status=status.HTTP_400_BAD_REQUEST)
                 
-                client = Client.objects.get(id=int(client_id))
+                client_obj = Client.objects.get(id=int(client_id))
                 
+                # Crear venta cabecera
                 sale = Sale.objects.create(
-                    client=client,
+                    client=client_obj,
                     payment_type=data.get('payment_type', 'CASH'),
                     total_amount=float(total_amount)
                 )
                 
-                items = data.get('items', [])
-                for item in items:
-                    prod = Product.objects.get(id=int(item['product']))
+                # Procesar carrito
+                items_data = data.get('items', [])
+                for item in items_data:
+                    product_id = item.get('product')
+                    product_obj = Product.objects.get(id=int(product_id))
+                    
+                    quantity = int(item.get('quantity', 1))
+                    price_per_unit = float(item.get('price_per_unit', 0.00))
+                    
                     SaleItem.objects.create(
                         sale=sale,
-                        product=prod,
-                        quantity=int(item['quantity']),
-                        price_per_unit=float(item['price_per_unit'])
+                        product=product_obj,
+                        quantity=quantity,
+                        price_per_unit=price_per_unit
                     )
-                    # Descontar stock
-                    prod.stock_quantity -= int(item['quantity'])
-                    prod.save()
                     
-            return Response({"message": "Éxito"}, status=201)
+                    # Descontar stock
+                    product_obj.stock_quantity -= quantity
+                    product_obj.save()
+                    
+            return Response({"message": "Venta guardada con éxito", "sale_id": sale.id}, status=status.HTTP_201_CREATED)
+            
+        except Client.DoesNotExist:
+            return Response({"error": f"El cliente con ID {client_id} no existe."}, status=status.HTTP_400_BAD_REQUEST)
+        except Product.DoesNotExist:
+            return Response({"error": "Uno de los productos en el carrito no existe."}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({"error": str(e)}, status=400)
+            return Response({"error": f"Fallo interno: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
