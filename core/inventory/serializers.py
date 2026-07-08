@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Product, Client, Sale, SaleItem
+# 🎯 CORREGIDO: Sumamos el modelo RouteVisit al import existente
+from .models import Product, Client, Sale, SaleItem, RouteVisit 
 
 class ProductSerializer(serializers.ModelSerializer):
     image_url = serializers.ImageField(required=False, allow_null=True)
@@ -24,3 +25,24 @@ class SaleCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sale
         fields = ['id', 'client', 'payment_type', 'total_amount', 'items']
+
+
+# ==========================================
+# 🗺️ MÓDULO CRM / SERIALIZADOR DE RUTAS (NUEVO)
+# ==========================================
+class RouteVisitSerializer(serializers.ModelSerializer):
+    client_id = serializers.IntegerField(source='client.id', read_only=True)
+
+    class Meta:
+        model = RouteVisit
+        fields = [
+            'id', 
+            'client_id', 
+            'client_name', 
+            'status', 
+            'notes', 
+            'planned_date', 
+            'sequence_order', 
+            'start_time', 
+            'end_time'
+        ]

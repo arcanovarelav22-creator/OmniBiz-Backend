@@ -27,14 +27,10 @@ class Client(models.Model):
 
     name = models.CharField(max_length=150, verbose_name="Nombre de la Tienda / Comercio")
     owner_name = models.CharField(max_length=100, blank=True, null=True, verbose_name="Nombre del Encargado")
-    phone = models.CharField(max_length=20, verbose_name="Teléfono de Contacto")
-    address = models.TextField(verbose_name="Dirección Completa / Ruta de Entrega")
+    phone = models.CharField(max_length=20, blank=True, null=True, verbose_name="Teléfono")
+    address = models.TextField(verbose_name="Dirección Exacta")
     
-    # Fintech Core: Control Financiero de Crédito
-    credit_limit = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="Límite de Crédito")
-    current_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="Saldo Pendiente")
-    
-    # Control Automatizado del Semáforo
+    # Estado financiero adaptativo para el semáforo en Flutter
     status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='EXCELLENT', verbose_name="Estado de Cobranza")
     
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Registro")
@@ -50,12 +46,12 @@ class Client(models.Model):
 
 
 # ==========================================
-# 💸 MÓDULO DE VENTAS (NUEVO)
+# 💸 MÓDULO DE VENTAS
 # ==========================================
 class Sale(models.Model):
-    PAYMENT_TYPE_CHOICES = [
-        ('CASH', 'Efectivo'),
-        ('CREDIT', 'Crédito'),
+    PAYMENT_TYPE_CHOICES = [\
+        ('CASH', 'Efectivo'),\
+        ('CREDIT', 'Crédito'),\
     ]
     
     client = models.ForeignKey(Client, on_delete=models.PROTECT, related_name='sales')
@@ -70,8 +66,36 @@ class Sale(models.Model):
 class SaleItem(models.Model):
     sale = models.ForeignKey(Sale, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
-    quantity = models.IntegerField()
+    quantity = models.IntegerField(default=1)
     price_per_unit = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
-        return f"{self.quantity}x {self.product.name} (Venta #{self.sale.id})"
+        return f"{self.quantity}x {self.product.name} en Venta #{self.sale.id}"
+
+
+# ==========================================
+# 🗺️ MÓDULO CRM / CONTROL DE RUTAS DIARIAS (NUEVO)
+# ==========================================
+class RouteVisit(models.Model):
+    STATUS_CHOICES = [
+        ('PENDING', 'PENDING'),
+        ('VISITED', 'VISITED'),
+        ('NO_SALE', 'NO_SALE'),
+    ]
+
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='route_visits')
+    client_name = models.CharField(max_length=255)  # Nombre guardado en caché para optimizar la velocidad en la app
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    notes = models.TextField(blank=True, null=True)
+    planned_date = models.DateField(auto_now_add=True)  # Se asigna automáticamente al día actual al crearla
+    sequence_order = models.IntegerField(default=0)  # Orden numérico en el checklist del Moto G55
+    start_time = models.DateTimeField(blank=True, null=True)
+    end_time = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.client_name} - {self.status} ({self.planned_date})"
+
+    class Meta:
+        verbose_name = "Visita de Ruta"
+        verbose_name_plural = "Visitas de Ruta"
+        ordering = ['sequence_order']
