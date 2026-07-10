@@ -3,7 +3,6 @@ from .views import (
     ProductListCreateAPIView, ProductRetrieveUpdateDestroyAPIView,
     ClientListCreateAPIView, ClientRetrieveUpdateDestroyAPIView,
     SaleCreateAPIView,
-    # 🎯 NUEVAS: Importamos las vistas encargadas de la gestión del CRM / Rutas
     DailyRouteListView, RouteVisitUpdateStatusAPIView
 ) 
 
@@ -20,9 +19,6 @@ urlpatterns = [
     path('sales/', SaleCreateAPIView.as_view(), name='sale-create'),
 
     # === 🗺️ MÓDULO CRM / RUTAS DIARIAS (Conexión para la App) ===
-    # 🎯 Coincide exactamente con el fetch '${crmUrl}daily/' que hace Flutter
     path('routes/daily/', DailyRouteListView.as_view(), name='daily-route-list'),
-    
-    # 🎯 Coincide exactamente con el patch '$crmUrl${visit.id}/update_status/' que hace Flutter
     path('routes/<int:pk>/update_status/', RouteVisitUpdateStatusAPIView.as_view(), name='route-visit-update-status'),
 ]

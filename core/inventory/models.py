@@ -49,9 +49,9 @@ class Client(models.Model):
 # 💸 MÓDULO DE VENTAS
 # ==========================================
 class Sale(models.Model):
-    PAYMENT_TYPE_CHOICES = [\
-        ('CASH', 'Efectivo'),\
-        ('CREDIT', 'Crédito'),\
+    PAYMENT_TYPE_CHOICES = [
+        ('CASH', 'Efectivo'),
+        ('CREDIT', 'Crédito'),
     ]
     
     client = models.ForeignKey(Client, on_delete=models.PROTECT, related_name='sales')

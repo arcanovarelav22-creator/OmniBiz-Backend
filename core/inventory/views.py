@@ -2,8 +2,8 @@ from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db import transaction
-from .models import Product, Client, Sale, SaleItem, RouteVisit # 🎯 NUEVO: Importamos el modelo de visitas
-from .serializers import ProductSerializer, ClientSerializer, RouteVisitSerializer # 🎯 NUEVO: Importamos el serializador de visitas
+from .models import Product, Client, Sale, SaleItem, RouteVisit 
+from .serializers import ProductSerializer, ClientSerializer, RouteVisitSerializer 
 from datetime import date
 
 # ==========================================
@@ -90,30 +90,19 @@ class SaleCreateAPIView(APIView):
 # ==========================================
 # 🗺️ MÓDULO CRM (RUTAS DIARIAS DE VISITAS)
 # ==========================================
-
 class DailyRouteListView(generics.ListAPIView):
-    """
-    🎯 Lógica: Filtra y retorna únicamente la secuencia de visitas programadas 
-    para la fecha de hoy, manteniendo sincronizado el checklist del Moto G55.
-    """
     serializer_class = RouteVisitSerializer
 
     def get_queryset(self):
-        # Filtra las visitas planificadas para el día de hoy
         return RouteVisit.objects.filter(planned_date=date.today()).order_by('sequence_order')
 
 
 class RouteVisitUpdateStatusAPIView(APIView):
-    """
-    🎯 Lógica: Recibe los cambios en caliente desde la calle (VISITED / NO_SALE)
-    y actualiza los estados y comentarios correspondientes en la base de datos de Render.
-    """
     def patch(self, request, pk):
         try:
             visit = RouteVisit.objects.get(pk=pk)
             data = request.data
             
-            # Actualizamos los campos enviados por la app en Flutter
             if 'status' in data:
                 visit.status = data['status']
             if 'notes' in data:
